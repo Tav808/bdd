@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar Sesión — TrueBuild PC</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles-login.css">
+</head>
+<body>
+
+<div class="announcement">
+  ¡Presupuestos sin cargo! Consultanos por WhatsApp o por mail — respondemos el mismo día.
+</div>
+
+<nav>
+  <a href="truebuild-pc.html" class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="3" width="20" height="14" rx="2" stroke="white" stroke-width="1.5"/>
+        <circle cx="11" cy="10" r="3.5" stroke="white" stroke-width="1.4"/>
+        <line x1="4" y1="10" x2="7" y2="10" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="15" y1="10" x2="18" y2="10" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="9" y1="19" x2="13" y2="19" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="11" y1="17" x2="11" y2="19" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="logo-name">True<span>Build</span> PC</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="truebuild-pc.html#servicios">Servicios</a></li>
+    <li><a href="truebuild-pc.html#por-que">Por qué nosotros</a></li>
+    <li><a href="truebuild-pc.html#proceso">Proceso</a></li>
+    <li><a href="truebuild-pc.html#contacto">Contacto</a></li>
+  </ul>
+  <a href="truebuild-pc.html#contacto" class="btn-nav">Presupuesto →</a>
+</nav>
+
+<div class="login-wrapper">
+  <div class="login-bg"></div>
+
+  <div class="login-card">
+    <div class="login-card-header">
+      <div class="login-eyebrow">Área de clientes</div>
+      <h1>Acceso <span>True</span>Build</h1>
+      <p>Iniciá sesión o creá tu cuenta para hacer seguimiento de tus pedidos.</p>
+    </div>
+
+    <div class="login-tabs">
+      <button class="tab-btn active" onclick="switchTab('login')">Iniciar sesión</button>
+      <button class="tab-btn" onclick="switchTab('register')">Crear cuenta</button>
+    </div>
+
+    <div class="login-body">
+
+      <div class="form-panel active" id="panel-login">
+
+        <!-- Mensajes de error/éxito dinámicos (los llena PHP vía JS o server-side) -->
+        <div class="alert-msg alert-error" id="login-error">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3"/><line x1="7" y1="4" x2="7" y2="7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="7" cy="10" r="0.7" fill="currentColor"/></svg>
+          <span id="login-error-msg">Email o contraseña incorrectos.</span>
+        </div>
+        <div class="alert-msg alert-success" id="login-success">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 7L6.5 9L9.5 5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>¡Bienvenido de vuelta! Redirigiendo...</span>
+        </div>
+
+        <!--
+          FORMULARIO DE LOGIN
+          action="login.php"  — apunta a tu archivo PHP
+          method="POST"       — envío seguro
+          id="form-login"     — para capturar con JS antes de enviar (fetch/ajax)
+
+          Opción A (AJAX): el JS intercepta el submit, llama a login.php con fetch()
+                           y maneja la respuesta sin recargar la página.
+          Opción B (clásico): quitar el onsubmit y dejar que el form haga POST normal,
+                              PHP redirige con header("Location: ...") según resultado.
+        -->
+        <form
+          id="form-login"
+          action="login.php"
+          method="POST"
+          onsubmit="handleLoginSubmit(event)"
+          novalidate
+        >
+          <!-- Token CSRF: generalo en PHP con session y ponelo acá -->
+          <!-- <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"> -->
+
+          <div class="field-group">
+            <label class="field-label" for="login-email">Email</label>
+            <input
+              class="field-input"
+              type="email"
+              id="login-email"
+              name="emailU"
+              placeholder="tu@email.com"
+              autocomplete="email"
+              required
+            >
+            <div class="field-error" id="login-email-error">Ingresá un email válido.</div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="login-password">Contraseña</label>
+            <div class="password-wrapper">
+              <input
+                class="field-input"
+                type="password"
+                id="login-password"
+                name="contrasenaU"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                required
+              >
+              <button class="toggle-password" type="button" onclick="togglePassword('login-password', this)" aria-label="Mostrar contraseña">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 8C2.5 4.5 5 2.5 8 2.5S13.5 4.5 15 8C13.5 11.5 11 13.5 8 13.5S2.5 11.5 1 8z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2.2" stroke="currentColor" stroke-width="1.2"/></svg>
+              </button>
+            </div>
+            <div class="field-error" id="login-password-error">Ingresá tu contraseña.</div>
+          </div>
+
+          <button class="btn-submit-full" type="submit" id="btn-login">
+            <div class="spinner"></div>
+            <span class="btn-text">Ingresar</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </form>
+
+        <div class="form-footer-text">
+          ¿No tenés cuenta? <a onclick="switchTab('register')">Registrate gratis</a>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           PANEL REGISTRO
+           Conectar con: register.php (POST)
+           Campos enviados: reg_nombre, reg_apellido, reg_email, reg_password, reg_confirm
+           Respuesta esperada JSON: { success: true/false, message: "...", redirect: "..." }
+           ========================================== -->
+      <div class="form-panel" id="panel-register">
+
+        <div class="alert-msg alert-error" id="register-error">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3"/><line x1="7" y1="4" x2="7" y2="7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="7" cy="10" r="0.7" fill="currentColor"/></svg>
+          <span id="register-error-msg">Ese email ya está registrado.</span>
+        </div>
+        <div class="alert-msg alert-success" id="register-success">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 7L6.5 9L9.5 5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>¡Cuenta creada! Redirigiendo...</span>
+        </div>
+
+        <form
+          id="form-register"
+          action="register.php"
+          method="POST"
+          onsubmit="handleRegisterSubmit(event)"
+          novalidate
+        >
+          <!-- <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"> -->
+
+          <div class="form-row-2">
+            <div class="field-group">
+              <label class="field-label" for="reg-nombre">Nombre</label>
+              <input class="field-input" type="text" id="reg-nombre" name="nombreU" placeholder="Juan" autocomplete="given-name" required>
+              <div class="field-error" id="reg-nombre-error">Ingresá tu nombre.</div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="reg-apellido">Apellido</label>
+              <input class="field-input" type="text" id="reg-apellido" name="apellidoU" placeholder="García" autocomplete="family-name" required>
+              <div class="field-error" id="reg-apellido-error">Ingresá tu apellido.</div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="reg-email">Email</label>
+            <input class="field-input" type="email" id="reg-email" name="emailU" placeholder="tu@email.com" autocomplete="email" required>
+            <div class="field-error" id="reg-email-error">Ingresá un email válido.</div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="reg-password">Contraseña</label>
+            <div class="password-wrapper">
+              <input class="field-input" type="password" id="reg-password" name="contrasenaU" placeholder="Mínimo 6 caracteres" autocomplete="new-password" required minlength="6">
+              <button class="toggle-password" type="button" onclick="togglePassword('reg-password', this)" aria-label="Mostrar contraseña">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 8C2.5 4.5 5 2.5 8 2.5S13.5 4.5 15 8C13.5 11.5 11 13.5 8 13.5S2.5 11.5 1 8z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2.2" stroke="currentColor" stroke-width="1.2"/></svg>
+              </button>
+            </div>
+            <div class="field-error" id="reg-password-error">Mínimo 6 caracteres.</div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="reg-confirm">Confirmar contraseña</label>
+            <div class="password-wrapper">
+              <input class="field-input" type="password" id="reg-confirm" name="confirmarU" placeholder="Repetí tu contraseña" autocomplete="new-password" required>
+              <button class="toggle-password" type="button" onclick="togglePassword('reg-confirm', this)" aria-label="Mostrar contraseña">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 8C2.5 4.5 5 2.5 8 2.5S13.5 4.5 15 8C13.5 11.5 11 13.5 8 13.5S2.5 11.5 1 8z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2.2" stroke="currentColor" stroke-width="1.2"/></svg>
+              </button>
+            </div>
+            <div class="field-error" id="reg-confirm-error">Las contraseñas no coinciden.</div>
+          </div>
+
+          <button class="btn-submit-full" type="submit" id="btn-register">
+            <div class="spinner"></div>
+            <span class="btn-text">Crear cuenta</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </form>
+
+        <div class="form-footer-text">
+          ¿Ya tenés cuenta? <a onclick="switchTab('login')">Iniciá sesión</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2025 TrueBuild PC. Todos los derechos reservados.</span>
+    <div class="social-links">
+      <a href="#" class="social-link">
+        <svg viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="3" stroke="rgba(255,255,255,0.5)" stroke-width="1.1"/><circle cx="7" cy="7" r="2.5" stroke="rgba(255,255,255,0.5)" stroke-width="1.1"/><circle cx="10.5" cy="3.5" r="0.6" fill="rgba(255,255,255,0.5)"/></svg>
+      </a>
+      <a href="#" class="social-link">
+        <svg viewBox="0 0 14 14" fill="none"><path d="M1 1l5 5.5L1 13h1.5l4-5.5 3.5 5.5H13L7.8 6.3 12.5 1H11L7.2 5.8 4 1H1z" fill="rgba(255,255,255,0.5)"/></svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // =====================
+  //  TAB SWITCHING
+  // =====================
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+    });
+    document.getElementById('panel-login').classList.toggle('active', tab === 'login');
+    document.getElementById('panel-register').classList.toggle('active', tab === 'register');
+    hideAlerts();
+  }
+
+  function hideAlerts() {
+    document.querySelectorAll('.alert-msg').forEach(el => el.classList.remove('visible'));
+  }
+
+  // =====================
+  //  TOGGLE PASSWORD
+  // =====================
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const isText = input.type === 'text';
+    input.type = isText ? 'password' : 'text';
+    btn.style.color = isText ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.7)';
+  }
+
+  // =====================
+  //  TOAST
+  // =====================
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (type ? ' ' + type : '');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  // =====================
+  //  VALIDACIÓN FRONTEND
+  // =====================
+  function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+  function showFieldError(id, msg) {
+    const input = document.getElementById(id);
+    const err = document.getElementById(id + '-error');
+    if (input) input.classList.add('error');
+    if (err) { err.textContent = msg; err.classList.add('visible'); }
+  }
+  function clearFieldErrors(ids) {
+    ids.forEach(id => {
+      const input = document.getElementById(id);
+      const err = document.getElementById(id + '-error');
+      if (input) input.classList.remove('error');
+      if (err) err.classList.remove('visible');
+    });
+  }
+
+  // =====================
+  //  SUBMIT LOGIN — conectar con login.php
+  //  PHP debe devolver JSON: { "success": true, "redirect": "truebuild-pc.html" }
+  //                      o:  { "success": false, "message": "Credenciales inválidas." }
+  // =====================
+  function handleLoginSubmit(event) {
+    event.preventDefault();
+
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    hideAlerts();
+    clearFieldErrors(['login-email', 'login-password']);
+
+    // Validación frontend básica
+    let valid = true;
+    if (!validateEmail(email))  { showFieldError('login-email', 'Ingresá un email válido.'); valid = false; }
+    if (!password)              { showFieldError('login-password', 'Ingresá tu contraseña.'); valid = false; }
+    if (!valid) return;
+
+    const btn = document.getElementById('btn-login');
+    btn.classList.add('loading');
+
+    // ── Llamada AJAX a login.php ──────────────────────────────────────────────
+    const formData = new FormData(document.getElementById('form-login'));
+
+    fetch('login.php', {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      btn.classList.remove('loading');
+
+      if (!data.success) {
+        // PHP devolvió error → mostrar mensaje
+        document.getElementById('login-error-msg').textContent = data.message || 'Email o contraseña incorrectos.';
+        document.getElementById('login-error').classList.add('visible');
+        return;
+      }
+
+      // Login exitoso — guardar datos de sesión para el nav de truebuild-pc.html
+      localStorage.setItem('truebuild_session', JSON.stringify({
+        email:    data.email    || '',
+        nombre:   data.nombre   || '',
+        apellido: data.apellido || ''
+      }));
+      document.getElementById('login-success').classList.add('visible');
+      showToast(data.message || '¡Bienvenido! ✓', 'success');
+      setTimeout(() => { window.location.href = data.redirect || 'truebuild-pc.html'; }, 1500);
+    })
+    .catch(() => {
+      btn.classList.remove('loading');
+      document.getElementById('login-error-msg').textContent = 'Error de conexión. Intentá de nuevo.';
+      document.getElementById('login-error').classList.add('visible');
+    });
+  }
+
+  // =====================
+  //  SUBMIT REGISTRO — conectar con register.php
+  //  PHP debe devolver JSON: { "success": true, "redirect": "truebuild-pc.html" }
+  //                      o:  { "success": false, "message": "El email ya está en uso." }
+  // =====================
+  function handleRegisterSubmit(event) {
+    event.preventDefault();
+
+    const nombre   = document.getElementById('reg-nombre').value.trim();
+    const apellido = document.getElementById('reg-apellido').value.trim();
+    const email    = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const confirm  = document.getElementById('reg-confirm').value;
+    hideAlerts();
+    clearFieldErrors(['reg-nombre', 'reg-apellido', 'reg-email', 'reg-password', 'reg-confirm']);
+
+    let valid = true;
+    if (!nombre)              { showFieldError('reg-nombre',    'Ingresá tu nombre.');           valid = false; }
+    if (!apellido)            { showFieldError('reg-apellido',  'Ingresá tu apellido.');         valid = false; }
+    if (!validateEmail(email)){ showFieldError('reg-email',     'Ingresá un email válido.');     valid = false; }
+    if (password.length < 6) { showFieldError('reg-password',  'Mínimo 6 caracteres.');         valid = false; }
+    if (password !== confirm) { showFieldError('reg-confirm',   'Las contraseñas no coinciden.'); valid = false; }
+    if (!valid) return;
+
+    const btn = document.getElementById('btn-register');
+    btn.classList.add('loading');
+
+    // ── Llamada AJAX a register.php ───────────────────────────────────────────
+    const formData = new FormData(document.getElementById('form-register'));
+
+    fetch('register.php', {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      btn.classList.remove('loading');
+
+      if (!data.success) {
+        document.getElementById('register-error-msg').textContent = data.message || 'Error al crear la cuenta.';
+        document.getElementById('register-error').classList.add('visible');
+        return;
+      }
+
+      document.getElementById('register-success').classList.add('visible');
+      // Guardar datos de sesión para el nav de truebuild-pc.html
+      localStorage.setItem('truebuild_session', JSON.stringify({
+        email:    data.email    || '',
+        nombre:   data.nombre   || '',
+        apellido: data.apellido || ''
+      }));
+      showToast(data.message || '¡Cuenta creada! ✓', 'success');
+      setTimeout(() => { window.location.href = data.redirect || 'truebuild-pc.html'; }, 1500);
+    })
+    .catch(() => {
+      btn.classList.remove('loading');
+      document.getElementById('register-error-msg').textContent = 'Error de conexión. Intentá de nuevo.';
+      document.getElementById('register-error').classList.add('visible');
+    });
+  }
+
+  // Enter key support
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const loginActive = document.getElementById('panel-login').classList.contains('active');
+      if (loginActive) document.getElementById('form-login').requestSubmit();
+      else             document.getElementById('form-register').requestSubmit();
+    }
+  });
+</script>
+</body>
+</html>
