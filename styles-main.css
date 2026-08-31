@@ -166,3 +166,4 @@ footer { background: var(--navy); border-top: 1px solid var(--dark-border); padd
 /* TOAST */
 .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--white); color: var(--navy); padding: 1rem 1.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: 600; border-left: 4px solid var(--blue); transform: translateY(100px); opacity: 0; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); z-index: 999; box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
 .toast.show { transform: translateY(0); opacity: 1; }
+
