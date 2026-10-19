@@ -479,6 +479,45 @@
         </div>
       </div>
 
+      <div class="card-transacciones" style="margin-top:2rem;">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 7h10M7 7l3-3M7 7l3 3M17 17H7M17 17l-3-3M17 17l-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Transferencia entre clientes
+        </h2>
+
+        <div class="alert-msg alert-success" id="transfer-success">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M8 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="transfer-success-msg">¡Transferencia realizada!</span>
+        </div>
+        <div class="alert-msg alert-error" id="transfer-error">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span id="transfer-error-msg">Error al transferir</span>
+        </div>
+
+        <div class="form-group">
+          <label for="dni-origen">DNI origen</label>
+          <input type="text" id="dni-origen" placeholder="Ej: 11111111">
+        </div>
+        <div class="form-group">
+          <label for="dni-destino">DNI destino</label>
+          <input type="text" id="dni-destino" placeholder="Ej: 22222222">
+        </div>
+        <div class="form-group">
+          <label for="monto-transferencia">Monto ($)</label>
+          <input type="number" id="monto-transferencia" step="0.01" min="0.01" placeholder="0.00">
+        </div>
+
+        <button class="btn-submit-payment" onclick="procesarTransferencia()">
+          <span class="spinner"></span>
+          <span class="btn-text">Transferir</span>
+          <span style="font-size: 1.2rem;">→</span>
+        </button>
+
+        <div id="cuentas-lista" style="margin-top:1.5rem;font-size:0.85rem;color:rgba(255,255,255,0.7);"></div>
+      </div>
+
       <div>
         <div class="card-transacciones" style="margin-bottom:2rem;">
           <h2>
@@ -659,7 +698,7 @@
     const formData = new FormData();
     formData.append('action', 'get_clientes');
 
-    fetch('Transacciones/transferencias.php', {
+    fetch('transacciones-api.php', {
       method: 'POST',
       body: formData
     })
@@ -706,7 +745,7 @@
     formData.append('action', 'get_pedidos');
     formData.append('id_cliente', clienteId);
 
-    fetch('Transacciones/transferencias.php', {
+    fetch('transacciones-api.php', {
       method: 'POST',
       body: formData
     })
@@ -837,7 +876,7 @@
     btn.disabled = true;
     btn.classList.add('loading');
 
-    fetch('Transacciones/transferencias.php', {
+    fetch('transacciones-api.php', {
       method: 'POST',
       body: formData
     })
@@ -870,8 +909,71 @@
     });
   }
 
+  function cargarCuentas() {
+    const formData = new FormData();
+    formData.append('action', 'get_cuentas');
+
+    fetch('transacciones-api.php', { method: 'POST', body: formData })
+      .then(res => res.json())
+      .then(data => {
+        const box = document.getElementById('cuentas-lista');
+        if (data.success && data.cuentas.length > 0) {
+          box.innerHTML = '<strong>Saldos actuales:</strong><br>' + data.cuentas.map(c =>
+            `${c.nombre} ${c.apellido} (DNI ${c.dni}): $${parseFloat(c.saldo).toLocaleString('es-AR', {minimumFractionDigits: 2})}`
+          ).join('<br>');
+        } else {
+          box.innerHTML = 'No hay clientes con DNI/saldo configurado todavía. Corré migracion_transferencias.sql.';
+        }
+      })
+      .catch(() => {});
+  }
+
+  function procesarTransferencia() {
+    const dniOrigen  = document.getElementById('dni-origen').value.trim();
+    const dniDestino = document.getElementById('dni-destino').value.trim();
+    const monto      = document.getElementById('monto-transferencia').value;
+
+    const successAlert = document.getElementById('transfer-success');
+    const errorAlert = document.getElementById('transfer-error');
+    successAlert.classList.remove('visible');
+    errorAlert.classList.remove('visible');
+
+    if (!dniOrigen || !dniDestino || !monto || parseFloat(monto) <= 0) {
+      document.getElementById('transfer-error-msg').textContent = 'Completá DNI origen, destino y un monto válido.';
+      errorAlert.classList.add('visible');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('action', 'transferir');
+    formData.append('dni_origen', dniOrigen);
+    formData.append('dni_destino', dniDestino);
+    formData.append('monto', monto);
+
+    fetch('transacciones-api.php', { method: 'POST', body: formData })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById('transfer-success-msg').textContent = data.message;
+          successAlert.classList.add('visible');
+          document.getElementById('dni-origen').value = '';
+          document.getElementById('dni-destino').value = '';
+          document.getElementById('monto-transferencia').value = '';
+          cargarCuentas();
+        } else {
+          document.getElementById('transfer-error-msg').textContent = data.message;
+          errorAlert.classList.add('visible');
+        }
+      })
+      .catch(() => {
+        document.getElementById('transfer-error-msg').textContent = 'Error de conexión.';
+        errorAlert.classList.add('visible');
+      });
+  }
+
   window.addEventListener('load', () => {
     cargarClientes();
+    cargarCuentas();
   });
 
   window.addEventListener('scroll', () => {
